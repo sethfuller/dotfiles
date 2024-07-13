@@ -4,6 +4,8 @@ builtin declare -aU fpath
 builtin declare -aU path
 builtin declare -aU manpath
 
+export GITHUB_USERNAME=sethfuller
+
 export CLICOLOR=1
 export LSCOLORS=GxFxCxDxBxegedabagaced
 
