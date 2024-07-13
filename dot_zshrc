@@ -1,3 +1,9 @@
+# duplicates slow down searching
+#############################################
+builtin declare -aU fpath
+builtin declare -aU path
+builtin declare -aU manpath
+
 export CLICOLOR=1
 export LSCOLORS=GxFxCxDxBxegedabagaced
 
