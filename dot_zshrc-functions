@@ -1,0 +1,417 @@
+#!/usr/bin/env zsh
+
+
+# Show the body of a shell function
+function funcdef() {
+    # Also functions $1 shows the function def.
+    whence -f $1
+    RC=$?
+    if [ $RC -ne 0 ]
+    then
+	echo "function '$1' not found"
+#	return $RC
+    fi
+    type $1
+}
+
+alias fdef="funcdef"
+
+# functions - Show all functions with bodies (type functions at command line)
+# Below print all function names in order, excluding those beginning _
+# print -l "${(ok)functions[(I)[^_]*]}"
+
+function fall() {
+    # print -roC1 ${(k)functions[(I)[^_]*]} | sort
+    print -C1 ${(k)functions[(I)[^_]*]} | sort
+}
+
+function fallx() {
+    fall | more
+}
+
+# Show all builtins
+function fblt() {
+    print -raC2 ${(kv)builtins} |sort
+}
+
+# Show all aliases
+function pal() {
+    print -aC2 ${(kv)aliases} |sort
+}
+
+alias aliases='pal'
+
+function mkcd() {
+    mkdir $1
+    cd $1
+}
+
+# All devices on the WI-FI network
+function allnet() {
+    arp -a
+}
+
+# Show man page in Preview
+function preman() {
+    man -t "$@" | open -f -a "Preview"
+}
+
+numfiles() {
+    ARGS="$1"
+    NUM="$(ls $ARGS | wc -l)";
+    echo "$NUM files in $ARGS";
+}
+
+alias nf=numfiles
+
+numfiles_rec() {
+    ARGS="$1"
+    NUM="$(ls -R $ARGS | wc -l)";
+    echo "$NUM files in $ARGS";
+}
+
+alias nfr=numfiles_rec
+
+function add_shell() { # Show how to add a new shell
+#    about Shows how to add a new shell to the list of login shells
+#    about and how to switch to it as you login shell
+    echo "sudo vi /etc/shells   # Add a new shell"
+    echo "chsh -s /path/to/shell"
+    echo "Future instances of Terminal will use the new shell"
+}
+
+function command_prompts() {
+#    about show url of page about setting command promps for bash
+
+    echo "Command prompts:"
+    echo "http://www.cyberciti.biz/tips/howto-linux-unix-bash-shell-setup-prompt.html"
+}
+
+function tree_sd() { # Print a directory tree with size and date
+#    about create a tree representation of a directory \(default current directory\)
+#    param -h\|--help display help and exit
+#    example '$ tree_sd [-h\|--help] [dir_name]'
+#    group sethfuller
+
+    local help=false
+
+    for param in "$@"; do
+        shift
+        case "$param" in
+            "--help")            set -- "$@" "-h" ;;
+            *)               set -- "$@" "$param"
+        esac
+    done
+
+    echo "ARGS: $FUNCNAME $@"
+    OPTIND=1
+    while getopts h opt
+    do
+        case "$opt" in
+            "h") help=true
+                 ;;
+        esac
+    done
+    shift $(expr $OPTIND - 1)
+
+    if [[ $help = true ]]; then
+        reference tree_sd
+        return
+    fi
+
+    local start_dir=$1
+    if [ -z "$start_dir" ]; then
+        start_dir="."
+    fi
+    find $start_dir -ls | awk '{printf "%s(%d)[%s %2d %s]\n", $NF, $7, $8, $9, $10}' | sed -e 's;[^/]*/;|____;g;s;____|; |;g'
+}
+
+
+function aliases() {
+    # about find aliases or the subject of the aliases matching the string
+    # param -h\|--help display help and exit
+    # param -d\|--debug display the command arguments received
+    # example '$ aliases [-h\|--help] alias_part_or_subject_part [string2]'
+    # group sethfuller
+
+    local help=false
+    local debug=false
+
+    local orig_args="$@"
+
+    for param in "$@"; do
+        shift
+        case "$param" in
+            "--help")        set -- "$@" "-h" ;;
+            "--debug")       set -- "$@" "-d" ;;
+            *)               set -- "$@" "$param"
+        esac
+    done
+
+    OPTIND=1
+    while getopts hd opt
+    do
+        case "$opt" in
+            "h") help=true
+                 ;;
+            "d") debug=true
+                 ;;
+        esac
+    done
+    shift $(expr $OPTIND - 1)
+
+    if [[ $debug = true ]]; then
+        echo "$FUNCNAME: ARGS: ${orig_args}"
+    fi
+    if [[ $help = true ]]; then
+        reference aliases
+        return
+    fi
+
+    if [ $# == 0 ]; then
+        echo "Specify at least one alias match"
+        reference aliases
+        return 1
+    fi
+
+    local aliases_match=""
+    for aliases_match in "$@"; do
+        shift
+        alias |egrep "$aliases_match"
+    done
+
+}
+
+function npmh() {
+    # about display help for npm commands \(has command completion from npm\)
+    # param -h\|--help display help and exit
+    # param -d\|--debug display the command arguments received
+    # param -l\|--long display full usage info
+    # example '$ npmh [-h\|--help] [-d\|--debug] [-l\|--long] [string2]'
+    # group sethfuller
+
+    local help=false
+    local debug=false
+    local long=false
+
+    local orig_args="$@"
+
+    for param in "$@"; do
+        shift
+        case "$param" in
+            "--help")        set -- "$@" "-h" ;;
+            "--debug")       set -- "$@" "-d" ;;
+            "--long")        set -- "$@" "-l" ;;
+            *)               set -- "$@" "$param"
+        esac
+    done
+
+    OPTIND=1
+    while getopts hdl opt
+    do
+        case "$opt" in
+            "h") help=true
+                 ;;
+            "d") debug=true
+                 ;;
+            "l") long=true
+                 ;;
+        esac
+    done
+    shift $(expr $OPTIND - 1)
+
+    if [[ $debug = true ]]; then
+        echo "$FUNCNAME: ARGS: ${orig_args}"
+    fi
+    if [[ $help = true ]]; then
+        reference npmh
+        return
+    fi
+
+    local long_opt=""
+    if [[ $long = true ]]; then
+        long_opt="-l"
+    fi
+
+    local npm_cmd="$long_opt $1"
+
+    npm help $npm_cmd
+}
+
+function run_spring_boot() {
+    sp_boot_cmd="mvn spring-boot:run"
+    MVN_OPTS="-Xmx1024m -XX:MaxPermSize=128M" 
+    printf "export MAVEN_OPTS=%s\n" $MVN_OPTS
+    echo "$sp_boot_cmd"
+    eval "$sp_boot_cmd"
+}
+
+function run_gradle() {
+    gradle_cmd="gradle bootRun"
+    echo "$gradle_cmd"
+    JV_OPTS="-Xmx1024m -XX:MaxPermSize=128M" 
+    printf "export JAVA_OPTS=%s\n" $JV_OPTS
+    echo "bootRun is defined in the gradle plugin spring-boot-gradle-plugin"
+    eval "$gradle_cmd"
+}
+
+function process_args() {
+
+    local options=$1
+    local is_opt=$(echo "$options" | sed -n '/:/p')
+    if [ -z "$is_opt" ]; then
+        echo "No options specified"
+        return
+    fi
+    shift
+    if [ ! -z "$options" ]; then
+        opt_list=$(echo "$options" | awk -F\| '{for (i = 1; i <= NF; i++) {printf "%s ", $i;}}')
+        if [ ! -z "$PROC_ARGS_DEBUG" ]; then
+            (>&2 echo "options=$options"
+            echo "opt_list=$opt_list"
+            echo "\$@=$@")
+        fi
+
+        local match
+        local option
+        for param in "$@"; do
+            shift
+            match=0
+            for option in $opt_list; do
+#            echo $opt_list | while read option; do
+#            echo "$options" | awk -F\| '{for (i = 1; i <= NF; i++) {printf "%s ", $i;}}' | while read option; do
+                local is_opt=$(echo "$option" | sed -n '/:/p')
+                local long_opt=$(echo "$option" | awk -F':' '{print $1}')
+                local short_opt=$(echo "$option" | awk -F':' '{print $2}')
+                local is_dash=$(echo "$long_opt" | sed -n '/^\-\-/p')
+                if [ ! -z "$PROC_ARGS_DEBUG" ]; then
+                    (>&2 echo "option='${option}' long_opt='${long_opt}' short_opt='${short_opt}'")
+                fi
+                if [ -z "$is_dash" ]; then
+                    long_opt="--${long_opt}"
+                fi
+                is_dash=$(echo "$short_opt" | sed -n '/^\-/p')
+                if [ -z "$is_dash" ]; then
+                    short_opt="-${short_opt}"
+                fi
+                if [ ! -z "$PROC_ARGS_DEBUG" ]; then
+                    (>&2 echo "param=${param} long_opt=${long_opt} short_opt=${short_opt}")
+                fi
+                if [ "$param" == "$long_opt" ]; then
+                    set -- "$@" "$short_opt"
+                    if [ ! -z "$PROC_ARGS_DEBUG" ]; then
+                        (>&2 printf "set -- '%s' short='%s' param='%s'\n\n" "$@" "$short_opt" "$param")
+                    fi
+                    match=1
+                fi
+            done
+            if [ $match == 0 ]; then
+                set -- "$@" "$param"
+                if [ ! -z "$PROC_ARGS_DEBUG" ]; then
+                    (>&2 echo "set -- '$@' '$param' match=${match}")
+                fi
+            fi
+        done
+    fi
+    if [ ! -z "$PROC_ARGS_DEBUG" ]; then
+        (>&2 echo "Final $FUNCNAME: \$@=$@")
+    fi
+
+    echo "$@"
+}
+
+function py3 () {
+    python3 $*
+}
+
+# Set the terminal window header title
+settitle () {
+  echo -ne "\e]2;$@\a\e]1;$@\a";
+}
+
+# Reload .zshrc and files it sources to get latest changes
+function rezsh() {
+   source $HOME/.zshrc
+}
+
+precmd() {
+  # sets the tab title to current dir (only current dir, not full path)
+  echo -ne "\e]1;${PWD##*/}\a"
+}
+
+function gurl() {
+    git remote show origin |grep URL
+}
+
+# Run git command and options in all submodules and parent project
+function gsf() {
+    set -x
+    git submodule foreach git $*
+    git $*
+    set +x
+    echo "Done at: $(date)"
+}
+
+# Run any command and options in all submodules
+function gsfx() {
+    set -x
+    git submodule foreach $*
+    set +x
+    echo "Done at: $(date)"
+}
+
+# Pull the latest changes
+function gpl() {
+    set -x
+    git pull $*
+    set +x
+    echo "Done at: $(date)"
+}
+
+# ch - browse chrome history
+# From: https://sourabhbajaj.com/mac-setup/iTerm/fzf.html
+
+ch() {
+  local cols sep
+  cols=$(( COLUMNS / 3 ))
+  sep='{::}'
+
+  cp -f ~/Library/Application\ Support/Google/Chrome/Default/History /tmp/h
+
+  sqlite3 -separator $sep /tmp/h \
+    "select substr(title, 1, $cols), url
+     from urls order by last_visit_time desc" |
+  awk -F $sep '{printf "%-'$cols's  \x1b[36m%s\x1b[m\n", $1, $2}' |
+  fzf --ansi --multi | sed 's#.*\(https*://\)#\1#' | xargs open
+}
+
+# MySql Functions
+source $HOME/.zshrc-mysql
+#set +x
+
+# place this after nvm initialization!
+autoload -U add-zsh-hook
+
+load-nvmrc() {
+  local nvmrc_path
+  nvmrc_path="$(nvm_find_nvmrc)"
+
+  if [ -n "$nvmrc_path" ]; then
+    local nvmrc_node_version
+    nvmrc_node_version=$(nvm version "$(cat "${nvmrc_path}")")
+
+    if [ "$nvmrc_node_version" = "N/A" ]; then
+      nvm install
+    elif [ "$nvmrc_node_version" != "$(nvm version)" ]; then
+      nvm use
+    fi
+  elif [ -n "$(PWD=$OLDPWD nvm_find_nvmrc)" ] && [ "$(nvm version)" != "$(nvm version default)" ]; then
+    echo "Reverting to nvm default version"
+    nvm use default
+  fi
+}
+
+# add-zsh-hook chpwd load-nvmrc
+# load-nvmrc
+
+echo "Finish $HOME/.zshrc-functions At: $(date)"
