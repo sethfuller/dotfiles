@@ -9,9 +9,6 @@ export GITHUB_USERNAME=sethfuller
 export CLICOLOR=1
 export LSCOLORS=GxFxCxDxBxegedabagaced
 
-alias java-11="export JAVA_HOME=`/usr/libexec/java_home -v 11`; java -version; echo $JAVA_HOME"
-alias java-21="export JAVA_HOME=`/usr/libexec/java_home -v 21`; java -version; echo $JAVA_HOME"
-export JAVA_HOME=$(/usr/libexec/java_home -v 11)
 path=($HOME/bin $HOME/bin/python /opt/homebrew/bin $path)
 
 # Use locally installed angular
