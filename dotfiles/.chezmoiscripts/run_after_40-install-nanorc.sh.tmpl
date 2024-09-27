@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+# This script installs nano syntax highlighting for various languages.
+
+{{ template "shared_script_utils.bash" . }}
+
+# check for unzip before we continue
+if [ ! "$(command -v unzip)" ]; then
+    error 'install_nanorc: unzip is required but was not found. Install unzip first and then run this script again.' >&2
+    _safeExit_ 0
+fi
+
+# Check if the nano syntax highlighting directory exists
+if [ ! -d "${HOME}/.nano" ]; then
+    header "Installing nano syntax highlighting..."
+
+    nano_dir="${HOME}/.nano"
+
+    mkdir -p "${nano_dir}"
+
+    wget -O "${nano_dir}/nanorc.zip" https://github.com/scopatz/nanorc/archive/master.zip
+
+    pushd "${nano_dir}" >/dev/null || exit
+
+    unzip -o "${nano_dir}/nanorc.zip"
+    mv nanorc-master/* "${nano_dir}/"
+    rm -rf nanorc-master
+    rm "${nano_dir}/nanorc.zip"
+
+    popd >/dev/null || exit
+
+    notice 'nano syntax highlighting installed successfully.'
+fi
+
+_safeExit_

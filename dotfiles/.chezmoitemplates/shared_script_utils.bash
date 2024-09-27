@@ -111,7 +111,7 @@ _alert_() {
     elif [ "${_alertType}" == "info" ]; then
         _color="${gray}"
     elif [ "${_alertType}" == "warning" ]; then
-        _color="${red}"
+        _color="${yellow}"
     elif [ "${_alertType}" == "success" ]; then
         _color="${green}"
     elif [ "${_alertType}" == "debug" ]; then
@@ -138,7 +138,7 @@ _alert_() {
         fi
 
         if [[ ${_alertType} == header ]]; then
-            printf "${_color}%s${reset}\n" "${_message}"
+            printf "\n✨ ${_color}%s${reset} ✨\n" "${_message}"
         else
             printf "${_color}[%7s] %s${reset}\n" "${_alertType}" "${_message}"
         fi
@@ -218,6 +218,29 @@ debug() { _alert_ debug "${1}" "${2:-}"; }
 fatal() {
     _alert_ fatal "${1}" "${2:-}"
     _safeExit_ "1"
+}
+
+_makeTempDir_() {
+    # DESC:
+    #         Creates a temp directory to house temporary files
+    # ARGS:
+    #         $1 (Optional) - First characters/word of directory name
+    # OUTS:
+    #         Sets $TMP_DIR variable to the path of the temp directory
+    # USAGE:
+    #         _makeTempDir_ "$(basename "$0")"
+
+    [ -d "${TMP_DIR:-}" ] && return 0
+
+    if [ -n "${1:-}" ]; then
+        TMP_DIR="${TMPDIR:-/tmp/}${1}.${RANDOM}.${RANDOM}.$$"
+    else
+        TMP_DIR="${TMPDIR:-/tmp/}$(basename "$0").${RANDOM}.${RANDOM}.${RANDOM}.$$"
+    fi
+    (umask 077 && mkdir "${TMP_DIR}") || {
+        fatal "Could not create temporary directory! Exiting."
+    }
+    debug "\$TMP_DIR=${TMP_DIR}"
 }
 
 _printFuncStack_() {
@@ -320,4 +343,71 @@ _trapCleanup_() {
     else
         exit 1
     fi
+}
+
+_hasJQ_() {
+
+    if [[ ! $(command -v jq) ]]; then
+        warning "Must instal jq prior to running script"
+
+        {{- if eq .chezmoi.os "linux" }}
+        sudo apt install -y jq
+        {{- else if eq .chezmoi.os "darwin" }}
+        brew install jq
+        {{ end }}
+
+    fi
+
+}
+
+_inArray_() {
+    # DESC:
+    #         Determine if a regex matches an array element.  Default is case sensitive.
+    #         Pass -i flag to ignore case.
+    # ARGS:
+    #         $1 (Required) - Value to search for
+    #         $2 (Required) - Array written as ${ARRAY[@]}
+    # OPTIONS:
+    #         -i (Optional) - Ignore case
+    #         -r (Optional) - Use regex
+    # OUTS:
+    #         0 if true
+    #         1 if untrue
+    # USAGE:
+    #         if _inArray_ "VALUE" "${ARRAY[@]}"; then ...
+    #         if _inArray_  -i "VALUE" "${ARRAY[@]}"; then ...
+    # CREDIT:
+    #         https://github.com/labbots/bash-utility
+
+    [[ $# -lt 2 ]] && fatal "Missing required argument to ${FUNCNAME[0]}"
+
+    local _use_regex=false
+    local opt
+    local OPTIND=1
+    while getopts ":iIrR" opt; do
+        case ${opt} in
+            i | I)
+                #shellcheck disable=SC2064
+                trap '$(shopt -p nocasematch)' RETURN # reset nocasematch when function exits
+                shopt -s nocasematch                  # Use case-insensitive regex
+                ;;
+            r | R)
+                _use_regex=true
+                ;;
+            *) fatal "Unrecognized option '${1}' passed to ${FUNCNAME[0]}. Exiting." ;;
+        esac
+    done
+    shift $((OPTIND - 1))
+
+    local _array_item
+    if ${_use_regex}; then
+        local _value="${1}"
+    else
+        local _value="^${1}$"
+    fi
+    shift
+    for _array_item in "$@"; do
+        [[ ${_array_item} =~ ${_value} ]] && return 0
+    done
+    return 1
 }

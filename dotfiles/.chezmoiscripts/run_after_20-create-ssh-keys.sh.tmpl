@@ -1,0 +1,32 @@
+{{- if .use_secrets -}}
+#!/usr/bin/env bash
+
+{{ template "shared_script_utils.bash" . }}
+
+header "Creating SSH keys"
+
+if [ ! -d "${HOME}/.ssh_keys" ]; then
+    mkdir -p "${HOME}/.ssh_keys"
+    echo "[notice] Created directory: ${HOME}/.ssh_keys"
+fi
+
+{{ range .remote_servers -}}
+updated=false
+if [ ! -f "${HOME}/.ssh_keys/{{ .name }}" ]; then
+    echo "{{ range (onepassword .op_id).fields }}{{ if or (eq .label "privkey") (eq .label "private key") }}{{ .value }}{{ end }}{{ end }}" >"${HOME}/.ssh_keys/{{ .name }}"
+    chmod 600 "${HOME}/.ssh_keys/{{ .name }}"
+    updated=true
+fi
+if [ ! -f "${HOME}/.ssh_keys/{{ .name }}.pub" ]; then
+    echo "{{ range (onepassword .op_id).fields }}{{ if or (eq .label "pubkey") (eq .label "public key") }}{{ .value }}{{ end }}{{ end }}" >"${HOME}/.ssh_keys/{{ .name }}.pub"
+    chmod 644 "${HOME}/.ssh_keys/{{ .name }}.pub"
+    updated=true
+fi
+
+if [ "${updated}" = true ]; then
+    notice "Created SSH key pair for: {{ .name }}"
+fi
+
+{{ end -}}
+_safeExit_
+{{ end -}}

@@ -22,19 +22,12 @@ alias ping="gping"
 alias ping="prettyping --nolegend"
 {{- end }}
 
-{{- if lookPath "htop" }}
-alias top="htop" # Prefer `htop` over `top`
+{{- if lookPath "btm" }}
+alias top="btm" # Prefer `bottom` over `top`
 {{- end }}
 
 {{- if lookPath "bat" }}
 alias cat="bat" # Prefer `bat` over `cat`
-{{- end }}
-
-{{- if lookPath "rip" }}
-alias rmd='rip'
-{{- else }}
-alias rm='rm'
-alias rmd='rm -rf'
 {{- end }}
 
 {{- if lookPath "dig" }}

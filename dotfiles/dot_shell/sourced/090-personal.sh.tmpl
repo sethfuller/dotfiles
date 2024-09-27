@@ -1,13 +1,17 @@
-{{- if lookPath "pull_all_repos" }}
-alias pr="pull_all_repos --directory=\${HOME}/repos"
+{{- if lookPath "autopull" }}
+alias pr="autopull"
 {{- end }}
 
 # Local navigational Shortcuts
-alias dot='cd ${HOME}/repos/dotfiles'
-alias dp='cd ${HOME}/repos/dotfiles-private'
+{{- if .dev_computer }}
 alias homelab='cd ${HOME}/homelab'
+{{ end }}
+
+{{- if .personal_computer -}}
 alias work='cd ${HOME}/work-docs'
 alias personal='cd ${HOME}/personal-files'
+{{- end }}
+
 alias repos='cd ${HOME}/repos'
 
 {{ if .use_secrets -}}
