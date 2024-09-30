@@ -1,4 +1,1 @@
-export JAVA_HOME=$(/usr/libexec/java_home -v 11)
-
-typeset -U path
 path=($HOME/bin $HOME/bin/python /opt/homebrew/bin $path)
