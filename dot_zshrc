@@ -158,6 +158,13 @@ echo "After completions"
 # [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh --no-use"  # This loads nvm
 # [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
+
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f '/Users/sethfuller/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/sethfuller/google-cloud-sdk/path.zsh.inc'; fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f '/Users/sethfuller/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/sethfuller/google-cloud-sdk/completion.zsh.inc'; fi
+
 #THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
 # https://sdkman.io/usage
 export SDKMAN_DIR="$HOME/.sdkman"
