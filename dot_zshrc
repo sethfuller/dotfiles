@@ -1,3 +1,5 @@
+#!/usr/bin/env zsh
+
 # duplicates slow down searching
 #############################################
 builtin declare -aU fpath

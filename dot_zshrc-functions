@@ -1,6 +1,5 @@
 #!/usr/bin/env zsh
 
-
 # Show the body of a shell function
 function funcdef() {
     # Also functions $1 shows the function def.
