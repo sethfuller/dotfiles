@@ -62,14 +62,15 @@ alias -g el='|& less'
 alias -g etl='|& tail -20'
 alias -g et='|& tail'
 alias -g gvg='|& grep -v grep'
-alias -g brc='git brc'
 
 alias -g cod='checkout develop'
 
 # Show all git aliases with comments
 
 alias gal="$HOME/bin/git_aliases.py"
+alias -g brc='git brc'
 alias brg="git brr | grep"
+
 alias mc="minicom -c on"
 
 # alias em="$HOME/bin/emacs-mac.sh"
